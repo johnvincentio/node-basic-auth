@@ -1,3 +1,8 @@
+/* jshint node: true */
+/* jshint esnext: true */
+
+'use strict';
+
 const bodyParser = require('body-parser');
 const express = require('express');
 const mongoose = require('mongoose');
@@ -17,7 +22,7 @@ app.use(morgan('common'));
 app.use('/users/', usersRouter);
 
 app.use('*', function(req, res) {
-  return res.status(404).json({message: 'Not Found'});
+    return res.status(404).json({message: 'Not Found'});
 });
 
 // referenced by both runServer and closeServer. closeServer
@@ -25,40 +30,41 @@ app.use('*', function(req, res) {
 let server;
 
 function runServer() {
-  return new Promise((resolve, reject) => {
-    mongoose.connect(DATABASE_URL, err => {
-      if (err) {
-        return reject(err);
-      }
-      server = app.listen(PORT, () => {
-        console.log(`Your app is listening on port ${PORT}`);
-        resolve();
-      })
-      .on('error', err => {
-        mongoose.disconnect();
-        reject(err);
-      });
+    return new Promise((resolve, reject) => {
+        mongoose.connect(DATABASE_URL, err => {
+            if (err) {
+                return reject(err);
+            }
+            server = app.listen(PORT, () => {
+                    console.log(`Your app is listening on port ${PORT}`);
+                    resolve();
+                })
+                .on('error', err => {
+                    mongoose.disconnect();
+                    reject(err);
+                });
+        });
     });
-  });
 }
 
 function closeServer() {
-  return mongoose.disconnect().then(() => {
-     return new Promise((resolve, reject) => {
-       console.log('Closing server');
-       server.close(err => {
-           if (err) {
-               return reject(err);
-           }
-           resolve();
-       });
-     });
-  });
+    return mongoose.disconnect().then(() => {
+        return new Promise((resolve, reject) => {
+            console.log('Closing server');
+            server.close(err => {
+                if (err) {
+                    return reject(err);
+                }
+                resolve();
+            });
+        });
+    });
 }
 
 if (require.main === module) {
-  runServer().catch(err => console.error(err));
+    runServer().catch(err => console.error(err));
+}
+
+module.exports = {
+    app, runServer, closeServer
 };
-
-module.exports = {app, runServer, closeServer};
-
